@@ -1,15 +1,29 @@
+# Maven generated files
 target/
+
+# Test output folders
 logs/
 reports/
 test-output/
 allure-results/
 allure-report/
 cucumber-reports/
+
+# IntelliJ
 .idea/
 *.iml
 *.iws
+
+# VSCode
 .vscode/
+
+# Mac system file
 .DS_Store
+
+# Java compiled files
 *.class
 *.jar
+
+# Credentials / env files
 .env
+config/local.properties
