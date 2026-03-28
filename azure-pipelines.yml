@@ -1,0 +1,40 @@
+# Maven
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+
+- task: JavaToolInstaller@0
+  displayName: 'Set up Java 11'
+  inputs:
+    versionSpec: '11'
+    jdkArchitectureOption: 'x64'
+    jdkSourceOption: 'PreInstalled'
+
+- task: Maven@3
+  displayName: 'Run Selenium Tests'
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'test'
+  continueOnError: true
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    failTaskOnFailedTests: true
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Extent Report'
+  inputs:
+    targetPath: '$(System.DefaultWorkingDirectory)/test-output'
+    artifact: 'TestReport'
+    publishLocation: 'pipeline'
