@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    log4j2.xml — Log4j2 configuration for the AutoExerPom framework.
+
+    Log4j2 reads this file automatically from the classpath at startup.
+    Two appenders are defined:
+      1. ConsoleAppender  — writes to standard output (terminal / CI build log)
+      2. RollingFileAppender — writes to a rolling log file under logs/
+
+    Two loggers are configured:
+      - com.sdet.framework  set to DEBUG so framework internals (DriverFactory,
+                            ConfigReader, page actions) emit detailed trace output.
+      - Root logger         set to INFO to suppress noisy DEBUG output from
+                            third-party libraries (Selenium, WebDriverManager, etc.)
+-->
+
+<Configuration status="WARN">
+    <!--
+        status="WARN" controls Log4j2's own internal logging level.
+        Set to WARN so Log4j2 only prints its own startup/config warnings,
+        not verbose internal DEBUG lines, to the console.
+    -->
+
+    <!-- =====================================================================
+         PROPERTIES
+         Central place to define reusable values referenced elsewhere in this
+         file via ${prop:name}. Changing a value here updates every reference.
+    ====================================================================== -->
+    <Properties>
+        <!-- Path to the rolling log file. Matches log.path in config.properties. -->
+        <Property name="LOG_FILE_PATH">logs/framework.log</Property>
+
+        <!-- Pattern used by the console appender.
+             %d{yyyy-MM-dd HH:mm:ss}  — timestamp
+             %-5level                 — log level, left-padded to 5 chars (INFO , WARN , etc.)
+             %c{1}                    — simple class name (last segment only, e.g. LoginPage)
+             %msg                     — the log message
+             %n                       — platform line separator                          -->
+        <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss} [%-5level] %c{1} - %msg%n</Property>
+
+        <!-- Pattern used by the file appender — identical to the console pattern
+             so log files and terminal output are directly comparable.            -->
+        <Property name="FILE_PATTERN">%d{yyyy-MM-dd HH:mm:ss} [%-5level] %c{1} - %msg%n</Property>
+    </Properties>
+
+    <!-- =====================================================================
+         APPENDERS
+         Appenders define WHERE log output is sent and HOW it is formatted.
+         Each appender pairs a Destination (Console, File, Socket, …) with a
+         PatternLayout that controls the line format.
+    ====================================================================== -->
+    <Appenders>
+
+        <!-- -----------------------------------------------------------------
+             ConsoleAppender — writes every log event to standard output.
+             target="SYSTEM_OUT" keeps info/debug on stdout; use SYSTEM_ERR
+             if you want errors to appear on the error stream instead.
+        ------------------------------------------------------------------ -->
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <!--
+                PatternLayout applies the console pattern defined above.
+                disableAnsi="false" allows colour output in terminals that
+                support ANSI escape codes (most macOS / Linux terminals).
+            -->
+            <PatternLayout pattern="${prop:CONSOLE_PATTERN}" disableAnsi="false"/>
+        </Console>
+
+        <!-- -----------------------------------------------------------------
+             RollingFileAppender — writes log events to a file and automatically
+             rotates the file when the size threshold is reached.
+
+             fileName      — the active log file written during the current run.
+             filePattern   — naming pattern for archived (rolled) files.
+                             %i is replaced by an incrementing index (1, 2, … 5).
+        ------------------------------------------------------------------ -->
+        <RollingFile name="RollingFileAppender"
+                     fileName="${prop:LOG_FILE_PATH}"
+                     filePattern="logs/framework-%i.log.gz">
+
+            <PatternLayout pattern="${prop:FILE_PATTERN}"/>
+
+            <Policies>
+                <!--
+                    SizeBasedTriggeringPolicy — triggers a rollover whenever the
+                    active log file reaches 10 MB. The old file is compressed to
+                    .gz and renamed using the filePattern above.
+                -->
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+
+            <!--
+                DefaultRolloverStrategy — controls how many backup files are kept.
+                max="5" means at most 5 compressed archives (framework-1.log.gz
+                through framework-5.log.gz) are retained. When a 6th rollover
+                occurs the oldest archive is deleted automatically.
+            -->
+            <DefaultRolloverStrategy max="5"/>
+
+        </RollingFile>
+
+    </Appenders>
+
+    <!-- =====================================================================
+         LOGGERS
+         Loggers decide WHICH messages are captured and route them to one or
+         more appenders. More-specific loggers (by package name) take precedence
+         over the Root logger.
+    ====================================================================== -->
+    <Loggers>
+
+        <!-- -----------------------------------------------------------------
+             Framework logger — applies to every class under com.sdet.framework.
+             Level DEBUG captures all framework-internal log statements
+             (driver init, property reads, page actions, waits, etc.).
+             additivity="false" prevents events from also being handled by the
+             Root logger, avoiding duplicate lines in the output.
+        ------------------------------------------------------------------ -->
+        <Logger name="com.sdet.framework" level="DEBUG" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="RollingFileAppender"/>
+        </Logger>
+
+        <!-- -----------------------------------------------------------------
+             Root logger — catches everything not matched by a more-specific
+             logger (Selenium internals, WebDriverManager, TestNG, Cucumber, etc.).
+             Level INFO suppresses DEBUG noise from those third-party libraries
+             while still capturing their warnings and errors.
+        ------------------------------------------------------------------ -->
+        <Root level="INFO">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="RollingFileAppender"/>
+        </Root>
+
+    </Loggers>
+
+</Configuration>

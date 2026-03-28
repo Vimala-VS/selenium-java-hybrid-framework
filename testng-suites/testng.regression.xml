@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+    testng.regression.xml — Regression Suite
+
+    WHEN TO RUN:
+      Nightly via CI/CD scheduler, and before every release branch cut.
+      Also triggered manually when a significant change is merged to the
+      main branch (e.g. a new feature, a database migration, a dependency upgrade).
+      Do not run on every commit — use the sanity suite for that.
+
+    WHAT IT COVERS:
+      The full test suite: every scenario and every test method across all
+      features. Includes happy paths, negative paths, data-driven tests,
+      cross-page assertions, and the complete end-to-end checkout flow.
+        - Cucumber @regression scenarios: all scenarios in login.feature,
+          product.feature, and checkout.feature (via RegressionRunner).
+        - TestNG: all methods in LoginTest, ProductTest, and CheckoutTest.
+
+    APPROXIMATE DURATION:
+      15–25 minutes single-threaded. With parallel="classes" thread-count="3"
+      the three TestNG test classes (LoginTest, ProductTest, CheckoutTest) run
+      concurrently, reducing wall-clock time to ~8–12 minutes.
+      RegressionRunner runs in its own thread as a single Cucumber suite.
+
+    PARALLEL EXECUTION NOTE:
+      parallel="classes" means each <class> entry gets its own thread.
+      DriverFactory uses ThreadLocal<WebDriver> so each thread has an
+      isolated browser — no shared state between parallel classes.
+      Do NOT use parallel="methods" without verifying that @BeforeMethod
+      setup is thread-safe for the method level.
+
+    HOW TO RUN FROM COMMAND LINE:
+      mvn test -Dsurefire.suiteXmlFiles=testng-suites/testng.regression.xml
+      (This file is also the default target in pom.xml Surefire configuration.)
+-->
+
+<suite name="Regression Suite" verbose="1" parallel="classes" thread-count="3">
+
+    <test name="Regression Tests">
+        <classes>
+
+            <!--
+                RegressionRunner: executes all Cucumber scenarios tagged @regression.
+                Includes all @sanity scenarios (which are also tagged @regression)
+                plus all additional regression-only scenarios.
+            -->
+            <class name="com.sdet.runners.RegressionRunner"/>
+
+            <!--
+                LoginTest: all test methods run — valid login, invalid login,
+                and data-driven multi-user login via ExcelUtil DataProvider.
+            -->
+            <class name="com.sdet.tests.LoginTest"/>
+
+            <!--
+                ProductTest: all test methods run — product search,
+                add-to-cart with cross-page assertions, and cart item count.
+            -->
+            <class name="com.sdet.tests.ProductTest"/>
+
+            <!--
+                CheckoutTest: all test methods run — checkout page display,
+                complete end-to-end order flow, and order total verification.
+            -->
+            <class name="com.sdet.tests.CheckoutTest"/>
+
+        </classes>
+    </test>
+
+</suite>

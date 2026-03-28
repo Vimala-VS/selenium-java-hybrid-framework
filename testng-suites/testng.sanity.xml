@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+    testng.sanity.xml — Sanity Suite
+
+    WHEN TO RUN:
+      After every deployment to any environment (QA, Staging) to confirm that
+      the core application flows are operational before deeper testing begins.
+      Also used as a pre-merge gate: run sanity before merging a feature branch
+      to catch any obvious regressions early.
+
+    WHAT IT COVERS:
+      The minimum set of scenarios that must pass for the application to be
+      considered testable. If any sanity test fails, the regression suite
+      should not run — there is no point testing edge cases when the happy
+      path is broken.
+        - Cucumber @sanity scenarios: successful login, product search,
+          checkout page load (via SanityRunner)
+        - TestNG sanity group: testValidLogin, testSearchProduct,
+          testCheckoutPageDisplayed (via class group filters)
+
+    APPROXIMATE DURATION:
+      3–5 minutes depending on network latency and browser startup time.
+      Designed to be fast — single-threaded, happy-path only.
+
+    HOW TO RUN FROM COMMAND LINE:
+      mvn test -Dsurefire.suiteXmlFiles=testng-suites/testng.sanity.xml
+-->
+
+<suite name="Sanity Suite" verbose="1" thread-count="1">
+
+    <test name="Sanity Tests">
+        <classes>
+
+            <!--
+                SanityRunner: executes all Cucumber scenarios tagged @sanity
+                across login.feature, product.feature, and checkout.feature.
+                Each scenario runs as an independent Cucumber test entry.
+            -->
+            <class name="com.sdet.runners.SanityRunner"/>
+
+            <!--
+                LoginTest: include only tests in the "sanity" group.
+                Runs testValidLogin() — verifies the login happy path.
+                testInvalidLogin and data-driven tests are excluded.
+            -->
+            <class name="com.sdet.tests.LoginTest">
+                <methods>
+                    <include name="testValidLogin"/>
+                </methods>
+            </class>
+
+            <!--
+                ProductTest: include only tests in the "sanity" group.
+                Runs testSearchProduct() — verifies the search feature works.
+            -->
+            <class name="com.sdet.tests.ProductTest">
+                <methods>
+                    <include name="testSearchProduct"/>
+                </methods>
+            </class>
+
+            <!--
+                CheckoutTest: include only the sanity-level checkout check.
+                Runs testCheckoutPageDisplayed() — confirms checkout is reachable.
+            -->
+            <class name="com.sdet.tests.CheckoutTest">
+                <methods>
+                    <include name="testCheckoutPageDisplayed"/>
+                </methods>
+            </class>
+
+        </classes>
+    </test>
+
+</suite>

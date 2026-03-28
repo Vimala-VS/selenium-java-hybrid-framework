@@ -1,0 +1,15 @@
+target/
+logs/
+reports/
+test-output/
+allure-results/
+allure-report/
+cucumber-reports/
+.idea/
+*.iml
+*.iws
+.vscode/
+.DS_Store
+*.class
+*.jar
+.env

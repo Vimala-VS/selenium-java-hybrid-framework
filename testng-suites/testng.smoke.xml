@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+    testng.smoke.xml — Smoke Suite
+
+    WHEN TO RUN:
+      Immediately after a build or environment startup — before any other
+      testing. The smoke suite is the fastest possible check that the
+      application is alive and reachable. It does not verify correctness
+      deeply; it only confirms that the two most critical flows (login and
+      product search) are not completely broken.
+
+      Typical triggers:
+        - After a Docker container or test environment starts up.
+        - After a hot-fix deployment to confirm nothing was broken.
+        - As a health-check step in a CI pipeline before queuing the
+          longer sanity or regression suites.
+
+    WHAT IT COVERS:
+      Two tests only — the absolute minimum to confirm the site is up:
+        1. testValidLogin  — can a user log in? (authentication layer works)
+        2. testSearchProduct — can a user search for a product? (core feature works)
+
+      If either of these fails, there is no value in running any other test
+      because the application is fundamentally broken.
+
+    APPROXIMATE DURATION:
+      Under 2 minutes. Single-threaded, two tests, no setup overhead beyond
+      one browser launch per test.
+
+    DIFFERENCE FROM SANITY:
+      Smoke = "is the app alive?" — 2 tests, ~90 seconds.
+      Sanity = "are the core flows working?" — 6–8 tests, ~3–5 minutes.
+      Regression = "is everything working?" — full suite, ~15–25 minutes.
+
+    HOW TO RUN FROM COMMAND LINE:
+      mvn test -Dsurefire.suiteXmlFiles=testng-suites/testng.smoke.xml
+-->
+
+<suite name="Smoke Suite" verbose="1" thread-count="1">
+
+    <test name="Smoke Tests">
+        <classes>
+
+            <!--
+                LoginTest: include only testValidLogin.
+                Verifies that authentication is functional — if login is broken,
+                no other test in the system can succeed (all scenarios require auth).
+            -->
+            <class name="com.sdet.tests.LoginTest">
+                <methods>
+                    <include name="testValidLogin"/>
+                </methods>
+            </class>
+
+            <!--
+                ProductTest: include only testSearchProduct.
+                Verifies that the product search feature is reachable and returns
+                results — the most used feature after login on this site.
+            -->
+            <class name="com.sdet.tests.ProductTest">
+                <methods>
+                    <include name="testSearchProduct"/>
+                </methods>
+            </class>
+
+        </classes>
+    </test>
+
+</suite>
