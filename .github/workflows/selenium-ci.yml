@@ -34,7 +34,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
 
       - name: Run Selenium tests
-        run: mvn test -Dsurefire.suiteXmlFiles=testng-suites/testng.regression.xml
+        run: mvn test -Dsurefire.suiteXmlFiles=testng-suites/testng.regression.xml -Dheadless=true
         continue-on-error: true
 
       - name: Publish test results
