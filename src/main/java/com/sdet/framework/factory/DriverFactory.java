@@ -46,7 +46,8 @@ public class DriverFactory {
     private static final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
 
     // Prevent instantiation — all methods are accessed statically.
-    private DriverFactory() {}
+    private DriverFactory() {
+    }
 
     // -------------------------------------------------------------------------
     // initDriver() — resolves the browser type from config, downloads/configures
@@ -80,7 +81,8 @@ public class DriverFactory {
         driver.manage().window().maximize();
         log.debug("Browser window maximised.");
 
-        // Store the driver in ThreadLocal — this thread can now retrieve it via getDriver().
+        // Store the driver in ThreadLocal — this thread can now retrieve it via
+        // getDriver().
         driverThreadLocal.set(driver);
         log.info("WebDriver stored in ThreadLocal for thread: {}", Thread.currentThread().getName());
     }
@@ -95,8 +97,8 @@ public class DriverFactory {
         if (driver == null) {
             throw new IllegalStateException(
                     "WebDriver has not been initialised for thread: "
-                    + Thread.currentThread().getName()
-                    + ". Call DriverFactory.initDriver() before getDriver().");
+                            + Thread.currentThread().getName()
+                            + ". Call DriverFactory.initDriver() before getDriver().");
         }
         return driver;
     }
@@ -130,6 +132,21 @@ public class DriverFactory {
                 WebDriverManager.chromedriver().setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
                 chromeOptions.addArguments("--remote-allow-origins=*");
+
+                // Read headless flag — set via Maven: -Dheadless=true
+                // Automatically true on CI (GitHub Actions sets it in the pipeline)
+                boolean isHeadless = Boolean.parseBoolean(
+                        System.getProperty("headless", "false"));
+
+                if (isHeadless) {
+                    chromeOptions.addArguments("--headless=new");
+                    chromeOptions.addArguments("--no-sandbox");
+                    chromeOptions.addArguments("--disable-dev-shm-usage");
+                    chromeOptions.addArguments("--disable-gpu");
+                    chromeOptions.addArguments("--window-size=1920,1080");
+                    log.info("Chrome running in HEADLESS mode.");
+                }
+
                 log.debug("Creating local ChromeDriver.");
                 return new ChromeDriver(chromeOptions);
 
@@ -146,7 +163,7 @@ public class DriverFactory {
             default:
                 throw new IllegalArgumentException(
                         "Unsupported browser: '" + browser + "'. " +
-                        "Accepted values in config.properties: chrome, firefox, edge.");
+                                "Accepted values in config.properties: chrome, firefox, edge.");
         }
     }
 
@@ -179,7 +196,7 @@ public class DriverFactory {
     // isRemoteExecution() — checks whether the framework should create a
     // RemoteWebDriver. Currently driven by the system property "remote=true"
     // so CI pipelines can activate Grid mode without editing config.properties:
-    //   mvn test -Dremote=true
+    // mvn test -Dremote=true
     // -------------------------------------------------------------------------
     private static boolean isRemoteExecution(ConfigReader config) {
         String remoteFlag = System.getProperty("remote", "false");
