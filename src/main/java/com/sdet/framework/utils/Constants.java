@@ -63,10 +63,10 @@ public class Constants {
     // =========================================================================
 
     // Email address of the pre-registered test account on automationexercise.com.
-    public static final String VALID_EMAIL = "testuser@email.com";
+    public static final String VALID_EMAIL = "testsdetuser@gmail.com";
 
     // Password for the pre-registered test account.
-    public static final String VALID_PASSWORD = "Test@123";
+    public static final String VALID_PASSWORD = "testuser@1234";
 
     // =========================================================================
     // TEST DATA
